@@ -43,29 +43,29 @@ jobs:
         key: ${{ runner.os }}-pip-${{ hashFiles('requirements/edx/development.txt') }}
         restore-keys: ${{ runner.os }}-pip-
 
-    - name: Install MySQL 5.7
-      run: |
-        mkdir ${RUNNER_WORKSPACE}/mysql_packages && cd ${RUNNER_WORKSPACE}/mysql_packages
-        sudo apt-get remove --purge *mysql* -y
-        sudo rm -rvf /etc/init.d/mysql* /etc/mysql* /var/lib/mysql*
-        sudo apt-get install libaio1 libnuma1 libtinfo5 -y
-        wget https://cdn.mysql.com/archives/mysql-5.7/mysql-server_5.7.35-1ubuntu18.04_amd64.deb-bundle.tar
-        tar -xf mysql-server_5.7*.tar
-        sudo DEBIAN_FRONTEND=noninteractive dpkg --install mysql-common_5.7*.deb libmysqlclient*.deb mysql-server_5.7*.deb mysql-client_5.7*.deb mysql-community-server_5.7*.deb mysql-community-client_5.7*.deb
+#    - name: Install MySQL 5.7
+#      run: |
+#        mkdir ${RUNNER_WORKSPACE}/mysql_packages && cd ${RUNNER_WORKSPACE}/mysql_packages
+#        sudo apt-get remove --purge *mysql* -y
+#        sudo rm -rvf /etc/init.d/mysql* /etc/mysql* /var/lib/mysql*
+#        sudo apt-get install libaio1 libnuma1 libtinfo5 -y
+#        wget https://cdn.mysql.com/archives/mysql-5.7/mysql-server_5.7.35-1ubuntu18.04_amd64.deb-bundle.tar
+#        tar -xf mysql-server_5.7*.tar
+#        sudo DEBIAN_FRONTEND=noninteractive dpkg --install mysql-common_5.7*.deb libmysqlclient*.deb mysql-server_5.7*.deb mysql-client_5.7*.deb mysql-community-server_5.7*.deb mysql-community-client_5.7*.deb
 
     - name: Ubuntu and sql Versions
       run: |
         lsb_release -a
         mysql -V
 
-    - name: Install Python dependencies
-      run: |
-        pip install -r requirements/pip.txt
-        pip install -r requirements/edx/development.txt
-        pip uninstall -y mysqlclient
-        pip install --no-binary mysqlclient mysqlclient
-        pip uninstall -y xmlsec
-        pip install --no-binary xmlsec xmlsec
+#    - name: Install Python dependencies
+#      run: |
+#        pip install -r requirements/pip.txt
+#        pip install -r requirements/edx/development.txt
+#        pip uninstall -y mysqlclient
+#        pip install --no-binary mysqlclient mysqlclient
+#        pip uninstall -y xmlsec
+#        pip install --no-binary xmlsec xmlsec
 
     - name: Initiate Services
       run: |
