@@ -18,9 +18,17 @@ class Command(BaseCommand):
     """
     Dump course(s) from Modulestore over to a "CourseGraph" (Neo4j) instance.
 
-    Example usage:
+    Example usages:
+
+      # Use connection parameters from `settings.COURSEGRAPH_SETTINGS`.
+      python manage.py cms dump_to_neo4j
+
+      # Use custom connection parameters.
       python manage.py cms dump_to_neo4j --host localhost --port 7473 \
-        --secure --user user --password password --settings=production
+        --secure --user user --password password
+
+      # Specify certain courses instead of dumping all of them.
+      python manage.py cms dump_to_neo4j --courses 'course-v1:A+B+1' 'course-v1:A+B+2'
     """
     help = dedent(__doc__).strip()
 
