@@ -16,38 +16,63 @@ log = logging.getLogger(__name__)
 
 class Command(BaseCommand):
     """
-    Command to dump modulestore data to neo4j
-
-    Takes the following named arguments:
-      host: the host of the neo4j server
-      port: the port on the neo4j server that accepts Bolt requests
-      secure: if set, connects to server over Bolt/TLS, otherwise uses Bolt
-      user: the username for the neo4j user
-      password: the user's password
-      courses: list of course key strings to serialize. If not specified, all
-        courses in the modulestore are serialized.
-      override: if true, dump all--or all specified--courses, regardless of when
-        they were last dumped. If false, or not set, only dump those courses that
-        were updated since the last time the command was run.
+    Dump course(s) from Modulestore over to a "CourseGraph" (Neo4j) instance.
 
     Example usage:
-      python manage.py lms dump_to_neo4j --host localhost --https_port 7473 \
+      python manage.py cms dump_to_neo4j --host localhost --port 7473 \
         --secure --user user --password password --settings=production
     """
     help = dedent(__doc__).strip()
 
     def add_arguments(self, parser):
-        parser.add_argument('--host', type=str)
-        parser.add_argument('--port', type=int, default=7687)
-        parser.add_argument('--secure', action='store_true')
-        parser.add_argument('--user', type=str)
-        parser.add_argument('--password', type=str)
-        parser.add_argument('--courses', type=str, nargs='*')
-        parser.add_argument('--skip', type=str, nargs='*')
+        parser.add_argument(
+            '--host',
+            type=str,
+            help="The hostname of the Neo4j server.",
+        )
+        parser.add_argument(
+            '--port',
+            type=int,
+            default=7687,
+            help="The port on the Neo4j server that accepts Bolt requests.",
+        )
+        parser.add_argument(
+            '--secure',
+            action='store_true',
+            help="Connect to server over Bolt/TLS instead of plain unencrypted Bolt.",
+        )
+        parser.add_argument(
+            '--user',
+            type=str,
+            help="The username of the Neo4j user.",
+        )
+        parser.add_argument(
+            '--password',
+            type=str,
+            help="The password of the Neo4j user.",
+        )
+        parser.add_argument(
+            '--courses',
+            type=str,
+            nargs='*',
+            help=(
+                "Keys of courses to serialize. " +
+                "If not specified, all courses in the modulestore are serialized."
+            ),
+        )
+        parser.add_argument(
+            '--skip',
+            type=str,
+            nargs='*',
+            help="Keys of courses to NOT to serialize.",
+        )
         parser.add_argument(
             '--override',
             action='store_true',
-            help='dump all--or all specified--courses, ignoring cache',
+            help=(
+                "Dump all courses regardless of when they were last published. " +
+                "By default, courses that have been dumped since last publish are skipped."
+            ),
         )
 
     def handle(self, *args, **options):
