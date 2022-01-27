@@ -1,4 +1,4 @@
-name: Migrations check
+name: Migrations check on MySql8
 
 on:
   workflow_dispatch:
