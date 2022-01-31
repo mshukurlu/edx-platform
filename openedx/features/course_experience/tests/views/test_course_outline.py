@@ -22,7 +22,7 @@ from pyquery import PyQuery as pq
 from pytz import UTC
 from waffle.models import Switch
 from xmodule.modulestore import ModuleStoreEnum
-from xmodule.modulestore.tests.django_utils import TEST_DATA_MONGO_AMNESTY_MODULESTORE, SharedModuleStoreTestCase
+from xmodule.modulestore.tests.django_utils import SharedModuleStoreTestCase
 from xmodule.modulestore.tests.factories import CourseFactory, ItemFactory
 
 from common.djangoapps.course_modes.models import CourseMode
@@ -60,7 +60,6 @@ class TestCourseOutlinePage(SharedModuleStoreTestCase, MasqueradeMixin):
     Test the course outline view.
     """
 
-    MODULESTORE = TEST_DATA_MONGO_AMNESTY_MODULESTORE
     ENABLED_SIGNALS = ['course_published']
 
     @classmethod

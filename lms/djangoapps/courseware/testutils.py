@@ -161,13 +161,11 @@ class RenderXBlockTestMixin(MasqueradeMixin, metaclass=ABCMeta):
         return response
 
     @ddt.data(
-        ('vertical_block', ModuleStoreEnum.Type.mongo, 13),
-        ('vertical_block', ModuleStoreEnum.Type.split, 5),
-        ('html_block', ModuleStoreEnum.Type.mongo, 14),
-        ('html_block', ModuleStoreEnum.Type.split, 5),
+        ('vertical_block', 5),
+        ('html_block', 5),
     )
     @ddt.unpack
-    def test_courseware_html(self, block_name, default_store, mongo_calls):
+    def test_courseware_html(self, block_name, mongo_calls):
         """
         To verify that the removal of courseware chrome elements is working,
         we include this test here to make sure the chrome elements that should
@@ -175,9 +173,9 @@ class RenderXBlockTestMixin(MasqueradeMixin, metaclass=ABCMeta):
         If this test fails, it's probably because the HTML template for courseware
         has changed and COURSEWARE_CHROME_HTML_ELEMENTS needs to be updated.
         """
-        with self.store.default_store(default_store):
+        with self.store.default_store(ModuleStoreEnum.Type.split):
             self.block_name_to_be_tested = block_name
-            self.setup_course(default_store)
+            self.setup_course(ModuleStoreEnum.Type.split)
             self.setup_user(admin=True, enroll=True, login=True)
 
             with check_mongo_calls(mongo_calls):
