@@ -232,12 +232,12 @@ class OutlineFromModuleStoreTestCase(ModuleStoreTestCase):
             )
             ItemFactory.create(
                 parent_location=section_1.location,
-                category='problemset',
+                category='sequential',
                 display_name="pset_seq"
             )
             ItemFactory.create(
                 parent_location=section_1.location,
-                category='videosequence',
+                category='sequential',
                 display_name="video_seq"
             )
 
