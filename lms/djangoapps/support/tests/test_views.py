@@ -2,12 +2,12 @@
 Tests for support views.
 """
 
-
 import itertools
 import json
 import re
 from datetime import datetime, timedelta
 from unittest.mock import patch
+from urllib.parse import quote
 from uuid import UUID, uuid4
 
 import ddt
@@ -27,8 +27,11 @@ from edx_proctoring.tests.utils import ProctoredExamTestCase
 from opaque_keys.edx.locator import BlockUsageLocator
 from organizations.tests.factories import OrganizationFactory
 from pytz import UTC
+from rest_framework import status
 from social_django.models import UserSocialAuth
-from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase, SharedModuleStoreTestCase
+from xmodule.modulestore.tests.django_utils import (
+    TEST_DATA_MONGO_AMNESTY_MODULESTORE, ModuleStoreTestCase, SharedModuleStoreTestCase,
+)
 from xmodule.modulestore.tests.factories import CourseFactory
 
 from common.djangoapps.course_modes.models import CourseMode
@@ -214,7 +217,7 @@ class SupportViewAccessTests(SupportViewTestCase):
         # Expect a redirect to the login page
         redirect_url = "{login_url}?next={original_url}".format(
             login_url=reverse("signin_user"),
-            original_url=url,
+            original_url=quote(url),
         )
         self.assertRedirects(response, redirect_url)
 
@@ -247,6 +250,8 @@ class SupportViewCertificatesTests(SupportViewTestCase):
     """
     Tests for the certificates support view.
     """
+    MODULESTORE = TEST_DATA_MONGO_AMNESTY_MODULESTORE
+
     def setUp(self):
         """Make the user support staff. """
         super().setUp()
@@ -265,7 +270,7 @@ class SupportViewCertificatesTests(SupportViewTestCase):
 
     def test_certificates_along_with_course_filter(self):
         # Check that an initial filter is passed to the JavaScript client.
-        url = reverse("support:certificates") + "?user=student@example.com&course_id=" + str(self.course.id)
+        url = reverse("support:certificates") + "?user=student@example.com&course_id=" + quote(str(self.course.id))
         response = self.client.get(url)
         self.assertContains(response, "userFilter: 'student@example.com'")
         self.assertContains(response, "courseFilter: '" + str(self.course.id) + "'")
@@ -435,6 +440,27 @@ class SupportViewEnrollmentsTests(SharedModuleStoreTestCase, SupportViewTestCase
 
     @disable_signal(signals, 'post_save')
     @ddt.data('username', 'email')
+    def test_create_new_enrollment_invalid_mode(self, search_string_type):
+        """
+        Assert that a new enrollment is not created with a vulnerable/invalid enrollment mode.
+        """
+        test_user = UserFactory.create(username='newStudent', email='test2@example.com', password='test')
+        assert ManualEnrollmentAudit.get_manual_enrollment_by_email(test_user.email) is None
+        url = reverse(
+            'support:enrollment_list',
+            kwargs={'username_or_email': getattr(test_user, search_string_type)}
+        )
+        response = self.client.post(url, data={
+            'course_id': str(self.course.id),
+            'mode': '<script>alert("xss")</script>',
+            'reason': 'Financial Assistance'
+        })
+        test_key_error = b'&lt;script&gt;alert(&#34;xss&#34;)&lt;/script&gt; is not a valid mode for course-v1:org'
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert test_key_error in response.content
+
+    @disable_signal(signals, 'post_save')
+    @ddt.data('username', 'email')
     def test_create_existing_enrollment(self, search_string_type):
         """
         Assert that a new enrollment is not created when an enrollment already exist for that course.
@@ -472,6 +498,27 @@ class SupportViewEnrollmentsTests(SharedModuleStoreTestCase, SupportViewTestCase
         assert response.status_code == 200
         assert ManualEnrollmentAudit.get_manual_enrollment_by_email(self.student.email) is not None
         self.assert_enrollment(CourseMode.VERIFIED)
+
+    @disable_signal(signals, 'post_save')
+    @ddt.data('username', 'email')
+    def test_change_enrollment_invalid_old_mode(self, search_string_type):
+        """
+        Assert changing mode fails for an enrollment having a vulnerable/invalid old mode.
+        """
+        assert ManualEnrollmentAudit.get_manual_enrollment_by_email(self.student.email) is None
+        url = reverse(
+            'support:enrollment_list',
+            kwargs={'username_or_email': getattr(self.student, search_string_type)}
+        )
+        response = self.client.patch(url, data={
+            'course_id': str(self.course.id),
+            'old_mode': '<script>alert("xss")</script>',
+            'new_mode': CourseMode.VERIFIED,
+            'reason': 'Financial Assistance'
+        }, content_type='application/json')
+        test_key_error = b'is not enrolled with mode &lt;script&gt;alert(&#34;xss&#34;)&lt;/script&gt;'
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert test_key_error in response.content
 
     @disable_signal(signals, 'post_save')
     @ddt.data('username', 'email')
@@ -711,8 +758,8 @@ class SupportViewLinkProgramEnrollmentsTests(SupportViewTestCase):
         assert render_call_dict['errors'] == [error]
 
     @ddt.data(
-        '0001,learner-01\n0002,learner-02',                                 # normal
-        '0001,learner-01,apple,orange\n0002,learner-02,purple',             # extra fields
+        '0001,learner-01\n0002,learner-02',  # normal
+        '0001,learner-01,apple,orange\n0002,learner-02,purple',  # extra fields
         '\t0001        ,    \t  learner-01    \n   0002 , learner-02    ',  # whitespace
     )
     @patch('lms.djangoapps.support.views.utils.link_program_enrollments')
@@ -902,7 +949,8 @@ class ProgramEnrollmentsInspectorViewTests(SupportViewTestCase):
                         is_active=True
                     )
 
-                program_course_enrollment = ProgramCourseEnrollmentFactory.create(  # lint-amnesty, pylint: disable=unused-variable
+                program_course_enrollment = ProgramCourseEnrollmentFactory.create(
+                    # lint-amnesty, pylint: disable=unused-variable
                     program_enrollment=program_enrollment,
                     course_key=course_id,
                     course_enrollment=course_enrollment,
@@ -1254,7 +1302,8 @@ class ProgramEnrollmentsInspectorAPIViewTests(SupportViewTestCase):
                         is_active=True
                     )
 
-                program_course_enrollment = ProgramCourseEnrollmentFactory.create(  # lint-amnesty, pylint: disable=unused-variable
+                program_course_enrollment = ProgramCourseEnrollmentFactory.create(
+                    # lint-amnesty, pylint: disable=unused-variable
                     program_enrollment=program_enrollment,
                     course_key=course_id,
                     course_enrollment=course_enrollment,
@@ -1498,6 +1547,7 @@ class FeatureBasedEnrollmentSupportApiViewTests(SupportViewTestCase):
     """
     Test suite for FBE Support API view.
     """
+
     def setUp(self):
         super().setUp()
         SupportStaffRole().add_users(self.user)
@@ -1624,8 +1674,8 @@ class LinkProgramEnrollmentSupportAPIViewTests(SupportViewTestCase):
         assert response_data['errors'] == [error]
 
     @ddt.data(
-        '0001,learner-01\n0002,learner-02',                                 # normal
-        '0001,learner-01,apple,orange\n0002,learner-02,purple',             # extra fields
+        '0001,learner-01\n0002,learner-02',  # normal
+        '0001,learner-01,apple,orange\n0002,learner-02,purple',  # extra fields
         '\t0001        ,    \t  learner-01    \n   0002 , learner-02    ',  # whitespace
     )
     @patch('lms.djangoapps.support.views.utils.link_program_enrollments')
@@ -1751,6 +1801,7 @@ class TestOnboardingView(SupportViewTestCase, ProctoredExamTestCase):
     """
     Tests for OnboardingView
     """
+    MODULESTORE = TEST_DATA_MONGO_AMNESTY_MODULESTORE
 
     def setUp(self):
         super().setUp()

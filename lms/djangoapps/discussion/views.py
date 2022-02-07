@@ -706,7 +706,7 @@ def _discussions_mfe_context(query_params: Dict, course_key: CourseKey, user: Us
         A URL for the MFE experience if active for the current request or None
     """
     experience_param = query_params.get("discussions_experience", "").lower()
-    mfe_url = get_discussions_mfe_url(course_key)
+    mfe_url = get_discussions_mfe_url(course_key=course_key, view='in_context')
     if not mfe_url:
         return {"show_banner": False, "show_mfe": False}
     show_banner = bool(has_access(user, 'staff', course_key))
@@ -720,6 +720,7 @@ def _discussions_mfe_context(query_params: Dict, course_key: CourseKey, user: Us
         "show_mfe": show_mfe,
         "legacy_url": f"{forum_url}?discussions_experience=legacy",
         "mfe_url": f"{forum_url}?discussions_experience=new",
+        "share_feedback_url": settings.DISCUSSIONS_MFE_FEEDBACK_URL,
         "course_key": course_key,
         "show_banner": show_banner,
         "discussions_mfe_url": mfe_url,

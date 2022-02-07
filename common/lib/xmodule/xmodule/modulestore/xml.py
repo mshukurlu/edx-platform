@@ -158,16 +158,27 @@ class ImportSystem(XMLParsingSystem, MakoDescriptorSystem):  # lint-amnesty, pyl
                 xml_data.set('url_name', url_name)
 
             try:
+                if str(target_course_id) == "course-v1:ArbiX+CS101+2014_T3":
+                    logging.info(f"Investigation Log: {target_course_id} : Building xml_data from xml")
                 xml_data = etree.fromstring(xml)
-
+                if str(target_course_id) == "course-v1:ArbiX+CS101+2014_T3":
+                    logging.info(f"Investigation Log: {target_course_id} : Building xml_data completed")
                 make_name_unique(xml_data)
-
+                if str(target_course_id) == "course-v1:ArbiX+CS101+2014_T3":
+                    logging.info(f"Investigation Log: {target_course_id} : Fetching descriptor from xml_data. "
+                                 f"url_name is {xml_data.get('url_name')} and tag is {xml_data.tag}")
                 descriptor = self.xblock_from_node(
                     xml_data,
                     None,  # parent_id
                     id_manager,
                 )
+                if str(target_course_id) == "course-v1:ArbiX+CS101+2014_T3":
+                    logging.info(f"Investigation Log: {target_course_id} : Completed Fetch descriptor from xml_data. "
+                                 f"url_name is {xml_data.get('url_name')} and tag is {xml_data.tag}")
             except Exception as err:  # pylint: disable=broad-except
+                if str(target_course_id) == "course-v1:ArbiX+CS101+2014_T3":
+                    logging.info(f"Investigation Log: {target_course_id} : Failed Fetching descriptor from xml_data "
+                                 f"with error {err}. url_name is {xml_data.get('url_name')} and tag is {xml_data.tag}")
                 if not self.load_error_modules:
                     raise
 
@@ -198,6 +209,9 @@ class ImportSystem(XMLParsingSystem, MakoDescriptorSystem):  # lint-amnesty, pyl
             descriptor.data_dir = course_dir
 
             if descriptor.scope_ids.usage_id in xmlstore.modules[course_id]:
+                if str(target_course_id) == "course-v1:ArbiX+CS101+2014_T3":
+                    logging.info(f"Investigation Log: {target_course_id} : Descriptor.scope_ids.usage_id "
+                                 f"in xmlstore.modules[{target_course_id}]")
                 # keep the parent pointer if any but allow everything else to overwrite
                 other_copy = xmlstore.modules[course_id][descriptor.scope_ids.usage_id]
                 descriptor.parent = other_copy.parent
@@ -206,6 +220,9 @@ class ImportSystem(XMLParsingSystem, MakoDescriptorSystem):  # lint-amnesty, pyl
             xmlstore.modules[course_id][descriptor.scope_ids.usage_id] = descriptor
 
             if descriptor.has_children:
+                if str(target_course_id) == "course-v1:ArbiX+CS101+2014_T3":
+                    logging.info(f"Investigation Log: {target_course_id} : Descriptor with display_name "
+                                 f"{descriptor.display_name} has children")
                 for child in descriptor.get_children():
                     # parent is alphabetically least
                     if child.parent is None or child.parent > descriptor.scope_ids.usage_id:
@@ -214,7 +231,13 @@ class ImportSystem(XMLParsingSystem, MakoDescriptorSystem):  # lint-amnesty, pyl
 
             # After setting up the descriptor, save any changes that we have
             # made to attributes on the descriptor to the underlying KeyValueStore.
+            if str(target_course_id) == "course-v1:ArbiX+CS101+2014_T3":
+                logging.info(f"Investigation Log: {target_course_id} : Saving Descriptor "
+                             f"with display_name {descriptor.display_name}")
             descriptor.save()
+            if str(target_course_id) == "course-v1:ArbiX+CS101+2014_T3":
+                logging.info(f"Investigation Log: {target_course_id} : Descriptor Saved "
+                             f"with display_name {descriptor.display_name}")
             return descriptor
 
         render_template = lambda template, context: ''
@@ -381,7 +404,7 @@ class XMLModuleStore(ModuleStoreReadBase):
             raise exc
         finally:
             if str(target_course_id) == 'course-v1:ArbiX+CS101+2014_T3':
-                log.info(f'Investigation Log: {target_course_id} : {course_descriptor}')
+                logging.info(f'Investigation Log: {target_course_id} : {course_descriptor}')
             if course_descriptor is None:
                 pass
             elif isinstance(course_descriptor, ErrorBlock):
@@ -435,12 +458,7 @@ class XMLModuleStore(ModuleStoreReadBase):
         """
         log.info(f'Course import {target_course_id}: Starting courselike import from {course_dir}')
         with open(self.data_dir / course_dir / self.parent_xml) as course_file:
-            if str(target_course_id) == 'course-v1:ArbiX+CS101+2014_T3':
-                log.info(f'Investigation Log: {target_course_id} : Getting course data')
             course_data = etree.parse(course_file, parser=edx_xml_parser).getroot()
-
-            if str(target_course_id) == 'course-v1:ArbiX+CS101+2014_T3':
-                log.info(f'Investigation Log: {target_course_id} : Course data fetching complete {course_data}')
 
             org = course_data.get('org')
 
@@ -451,17 +469,11 @@ class XMLModuleStore(ModuleStoreReadBase):
                 tracker(msg)
                 org = 'edx'
 
-            if str(target_course_id) == 'course-v1:ArbiX+CS101+2014_T3':
-                log.info(f'Investigation Log: {target_course_id} : Org selected for course {org}')
-
             # Parent XML should be something like 'library.xml' or 'course.xml'
             courselike_label = self.parent_xml.split('.', maxsplit=1)[0]
 
             course = course_data.get(courselike_label)
 
-            if str(target_course_id) == 'course-v1:ArbiX+CS101+2014_T3':
-                log.info(f'Investigation Log: {target_course_id} : Course {course} fetched from '
-                         f'courselike_label {courselike_label}')
             if course is None:
                 msg = (
                     "No '{courselike_label}' attribute set for course in {dir}."
@@ -500,8 +512,6 @@ class XMLModuleStore(ModuleStoreReadBase):
             course_id = self.get_id(org, course, url_name)
 
             if course_ids is not None and course_id not in course_ids:
-                if str(target_course_id) == 'course-v1:ArbiX+CS101+2014_T3':
-                    log.info(f'Investigation Log: {target_course_id} : Course ID not in Course IDs (List)')
                 return None
 
             def get_policy(usage_id):
@@ -521,7 +531,7 @@ class XMLModuleStore(ModuleStoreReadBase):
                 services['user'] = self.user_service
 
             if str(target_course_id) == 'course-v1:ArbiX+CS101+2014_T3':
-                log.info(f'Investigation Log: {target_course_id} : Building Import System')
+                logging.info(f'Investigation Log: {target_course_id} : Building Import System')
 
             system = ImportSystem(
                 xmlstore=self,
@@ -538,12 +548,15 @@ class XMLModuleStore(ModuleStoreReadBase):
                 target_course_id=target_course_id,
             )
             if str(target_course_id) == 'course-v1:ArbiX+CS101+2014_T3':
-                log.info(f'Investigation Log: {target_course_id} : Building Import System Completed')
+                logging.info(f'Investigation Log: {target_course_id} : Building Import System Completed')
             course_descriptor = system.process_xml(etree.tostring(course_data, encoding='unicode'))
+            if str(target_course_id) == "course-v1:ArbiX+CS101+2014_T3":
+                logging.info(f"Investigation Log: {target_course_id} : XML Processed. "
+                             f"Course Descriptor {course_descriptor}")
             # If we fail to load the course, then skip the rest of the loading steps
             if isinstance(course_descriptor, ErrorBlock):
                 if str(target_course_id) == 'course-v1:ArbiX+CS101+2014_T3':
-                    log.info(f'Investigation Log: {target_course_id} : Course Descriptor is instance of ErrorBlock')
+                    logging.info(f'Investigation Log: {target_course_id} : Course Descriptor is instance of ErrorBlock')
                 return course_descriptor
 
             self.content_importers(system, course_descriptor, course_dir, url_name)
