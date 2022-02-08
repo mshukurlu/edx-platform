@@ -48,8 +48,6 @@ ENABLE_PWNED_PASSWORD_API = LegacyWaffleSwitch(
 # .. toggle_creation_date: 8-Feb-2022
 # .. toggle_target_removal_date: None
 # .. toggle_warnings: This temporary feature toggle does not have a target removal date.
-
-
 REDIRECT_TO_LMS = WaffleFlag(
     "user_authn.redirect_to_lms", module_name=__name__
 )
