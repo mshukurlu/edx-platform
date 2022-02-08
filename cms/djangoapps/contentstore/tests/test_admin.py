@@ -30,3 +30,4 @@ class TestAdminView(TestCase):
         assert response.status_code == 200
         self.assertIn('/admin/login/?next=/admin/', response.redirect_chain[0])
         assert len(response.redirect_chain) == 1
+        assert response.template_name == ['admin/login.html']
