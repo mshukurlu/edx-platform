@@ -31,7 +31,6 @@ from edx_django_utils import monitoring as monitoring_utils
 from edx_rest_framework_extensions.auth.jwt.authentication import JwtAuthentication
 from edx_rest_framework_extensions.auth.session.authentication import SessionAuthenticationAllowInactiveUser  # lint-amnesty, pylint: disable=wrong-import-order
 from eventtracking import tracker
-from ipware.ip import get_client_ip
 # Note that this lives in LMS, so this dependency should be refactored.
 from opaque_keys import InvalidKeyError
 from opaque_keys.edx.keys import CourseKey
@@ -80,6 +79,7 @@ from common.djangoapps.student.signals import REFUND_ORDER
 from common.djangoapps.util.db import outer_atomic
 from common.djangoapps.util.json_request import JsonResponse
 from xmodule.modulestore.django import modulestore  # lint-amnesty, pylint: disable=wrong-import-order
+from openedx.core.djangoapps.util.ip import get_client_ip
 
 log = logging.getLogger("edx.student")
 
@@ -365,7 +365,7 @@ def change_enrollment(request, check_access=True):
         # or if the user is enrolling in a country in which the course
         # is not available.
         redirect_url = embargo_api.redirect_if_blocked(
-            course_id, user=user, ip_address=get_client_ip(request)[0],
+            course_id, user=user, ip_address=get_client_ip(request),
             url=request.path
         )
         if redirect_url:

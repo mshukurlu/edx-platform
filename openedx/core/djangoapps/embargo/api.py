@@ -10,12 +10,12 @@ import logging
 
 from django.conf import settings
 from django.core.cache import cache
-from ipware.ip import get_client_ip
 from rest_framework import status
 from rest_framework.response import Response
 
 from common.djangoapps.student.auth import has_course_author_access
 from openedx.core.djangoapps.geoinfo.api import country_code_from_ip
+from openedx.core.djangoapps.util.ip import get_client_ip
 
 from .models import CountryAccessRule, RestrictedCourse
 
@@ -173,7 +173,7 @@ def get_embargo_response(request, course_id, user):
 
     """
     redirect_url = redirect_if_blocked(
-        course_id, user=user, ip_address=get_client_ip(request)[0], url=request.path)
+        course_id, user=user, ip_address=get_client_ip(request), url=request.path)
     if redirect_url:
         return Response(
             status=status.HTTP_403_FORBIDDEN,

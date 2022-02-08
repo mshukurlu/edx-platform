@@ -22,7 +22,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.views.generic.base import View
 from edx_rest_api_client.exceptions import SlumberBaseException
-from ipware.ip import get_client_ip
 from opaque_keys.edx.keys import CourseKey
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -43,6 +42,7 @@ from lms.djangoapps.verify_student.utils import can_verify_now
 from openedx.core.djangoapps.commerce.utils import ecommerce_api_client
 from openedx.core.djangoapps.embargo import api as embargo_api
 from openedx.core.djangoapps.site_configuration import helpers as configuration_helpers
+from openedx.core.djangoapps.util.ip import get_client_ip
 from openedx.core.lib.log_utils import audit_log
 from xmodule.modulestore.django import modulestore  # lint-amnesty, pylint: disable=wrong-import-order
 
@@ -238,7 +238,7 @@ class PayAndVerifyView(View):
         redirect_url = embargo_api.redirect_if_blocked(
             course_key,
             user=request.user,
-            ip_address=get_client_ip(request)[0],
+            ip_address=get_client_ip(request),
             url=request.path
         )
         if redirect_url:

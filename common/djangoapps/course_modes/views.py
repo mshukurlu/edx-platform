@@ -18,16 +18,16 @@ from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.decorators import method_decorator
-from django.utils.translation import get_language, to_locale
+from django.utils.translation import get_language
 from django.utils.translation import gettext as _
+from django.utils.translation import to_locale
 from django.views.generic.base import View
 from edx_django_utils.monitoring.utils import increment
-from ipware.ip import get_client_ip
 from opaque_keys.edx.keys import CourseKey
 from urllib.parse import urljoin  # lint-amnesty, pylint: disable=wrong-import-order
 
-from common.djangoapps.course_modes.models import CourseMode
 from common.djangoapps.course_modes.helpers import get_course_final_price, get_verified_track_links
+from common.djangoapps.course_modes.models import CourseMode
 from common.djangoapps.edxmako.shortcuts import render_to_response
 from common.djangoapps.util.date_utils import strftime_localized_html
 from edx_toggles.toggles import WaffleFlag  # lint-amnesty, pylint: disable=wrong-import-order
@@ -37,9 +37,10 @@ from lms.djangoapps.verify_student.services import IDVerificationService
 from openedx.core.djangoapps.catalog.utils import get_currency_data
 from openedx.core.djangoapps.embargo import api as embargo_api
 from openedx.core.djangoapps.enrollments.permissions import ENROLL_IN_COURSE
+from openedx.core.djangoapps.util.ip import get_client_ip
 from openedx.features.content_type_gating.models import ContentTypeGatingConfig
-from openedx.features.course_duration_limits.models import CourseDurationLimitConfig
 from openedx.features.course_duration_limits.access import get_user_course_duration, get_user_course_expiration_date
+from openedx.features.course_duration_limits.models import CourseDurationLimitConfig
 from openedx.features.enterprise_support.api import enterprise_customer_for_request
 from common.djangoapps.student.models import CourseEnrollment
 from common.djangoapps.util.db import outer_atomic
@@ -105,7 +106,7 @@ class ChooseModeView(View):
         embargo_redirect = embargo_api.redirect_if_blocked(
             course_key,
             user=request.user,
-            ip_address=get_client_ip(request)[0],
+            ip_address=get_client_ip(request),
             url=request.path
         )
         if embargo_redirect:
