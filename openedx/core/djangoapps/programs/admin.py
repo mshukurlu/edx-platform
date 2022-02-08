@@ -40,7 +40,6 @@ class ProgramDiscussionsConfigurationAdmin(SimpleHistoryAdmin):
     )
 
 
-
 class ProgramLiveConfigurationAdmin(SimpleHistoryAdmin):
     """
     Customize the admin interface for the program live configuration

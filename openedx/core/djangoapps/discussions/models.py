@@ -577,4 +577,3 @@ class DiscussionTopicLink(models.Model):
             f'enabled_in_context={self.enabled_in_context}'
             f')'
         )
-

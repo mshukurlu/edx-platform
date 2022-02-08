@@ -26,6 +26,7 @@ class ProgramsApiConfig(ConfigurationModel):
         )
     )
 
+
 class AbstractProgramLTIConfiguration(TimeStampedModel):
     """
     Associates a program with a LTI provider and configuration
@@ -68,7 +69,6 @@ class AbstractProgramLTIConfiguration(TimeStampedModel):
         return cls.objects.filter(
             program_uuid=program_uuid
         ).first()
-
 
 
 class ProgramLiveConfiguration(AbstractProgramLTIConfiguration):

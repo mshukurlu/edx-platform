@@ -86,7 +86,5 @@ class ProviderFilterAdmin(StackedConfigModelAdmin):
         DenyListFilter,
     )
 
-
-
 admin.site.register(DiscussionsConfiguration, DiscussionsConfigurationAdmin)
 admin.site.register(ProviderFilter, ProviderFilterAdmin)
