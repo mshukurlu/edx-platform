@@ -362,6 +362,9 @@ def _track_user_registration(user, profile, params, third_party_provider, regist
                 'address': profile.mailing_address,
                 'gender': profile.gender_display,
                 'country': str(profile.country),
+                'working_status':profile.working_status,
+                'education_status':profile.education_status,
+                'university':profile.university,
                 'email_subscribe': 'unsubscribed' if settings.MARKETING_EMAILS_OPT_IN and
                                    params.get('marketing_emails_opt_in') == 'false' else 'subscribed',
             }

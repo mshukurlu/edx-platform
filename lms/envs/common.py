@@ -3452,7 +3452,11 @@ REGISTRATION_EXTRA_FIELDS = {
     'honor_code': 'required',
     'terms_of_service': 'hidden',
     'city': 'hidden',
-    'country': 'hidden',
+    'country': 'required',
+    'working_status':'required',
+    'phone_number':'required',
+    'university':'required',
+    'education_status':'required'
 }
 
 REGISTRATION_FIELD_ORDER = [
@@ -3477,6 +3481,8 @@ REGISTRATION_FIELD_ORDER = [
     "goals",
     "honor_code",
     "terms_of_service",
+    "phone_number",
+    "education_status"
 ]
 
 # Optional setting to restrict registration / account creation to only emails

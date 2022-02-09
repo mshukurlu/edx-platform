@@ -1,14 +1,14 @@
 (function(define) {
     'use strict';
     define([
-        'jquery',
-        'underscore',
-        'gettext',
-        'edx-ui-toolkit/js/utils/string-utils',
-        'edx-ui-toolkit/js/utils/html-utils',
-        'js/student_account/views/FormView',
-        'text!templates/student_account/form_status.underscore'
-    ],
+            'jquery',
+            'underscore',
+            'gettext',
+            'edx-ui-toolkit/js/utils/string-utils',
+            'edx-ui-toolkit/js/utils/html-utils',
+            'js/student_account/views/FormView',
+            'text!templates/student_account/form_status.underscore'
+        ],
         function(
             $, _, gettext,
             StringUtils,
@@ -46,7 +46,7 @@
                 positiveValidationIcon: 'fa-check',
                 negativeValidationIcon: 'fa-exclamation',
                 successfulValidationDisplaySeconds: 3,
-            // These are reset to true on form submission.
+                // These are reset to true on form submission.
                 positiveValidationEnabled: true,
                 negativeValidationEnabled: true,
 
@@ -188,7 +188,7 @@
                         onInputFocus = function() {
                             // Apply on focus styles to input
                             $(this).find('label').addClass('focus-in')
-                                .removeClass('focus-out');
+                            //   .removeClass('focus-out');
 
                             // Show each input tip
                             $(this).children().each(function() {
@@ -200,8 +200,8 @@
                         onInputFocusOut = function() {
                             // If input has no text apply focus out styles
                             if ($(this).find(inputSelectors).val().length === 0) {
-                                $(this).find('label').addClass('focus-out')
-                                    .removeClass('focus-in');
+                                $(this).find('label').addClass('focus-in')
+                                //   .removeClass('focus-in');
                             }
 
                             // Hide each input tip
@@ -216,8 +216,8 @@
                         handleInputBehavior = function(input) {
                             // Initially put label in input
                             if (input.find(inputSelectors).val().length === 0) {
-                                input.find('label').addClass('focus-out')
-                                    .removeClass('focus-in');
+                                input.find('label').addClass('focus-in')
+                                //    .removeClass('focus-in');
                             }
 
                             // Initially hide each input tip
@@ -238,11 +238,11 @@
                                 if (!isCheckbox) {
                                     if ($input.find(inputSelectors).val().length === 0
                                         && !$input.is(':-webkit-autofill')) {
-                                        $input.find('label').addClass('focus-out')
-                                            .removeClass('focus-in');
+                                        $input.find('label').addClass('focus-in')
+                                        //    .removeClass('focus-in');
                                     } else {
                                         $input.find('label').addClass('focus-in')
-                                            .removeClass('focus-out');
+                                        // .removeClass('focus-out');
                                     }
                                 }
                             });
@@ -479,11 +479,11 @@
                                             return StringUtils.interpolate('<li {suppressAttr} >{error}</li>', {
                                                 error: errorItem.user_message,
                                                 suppressAttr: (
-                                                  key === 'email' || key === 'username'
+                                                    key === 'email' || key === 'username'
                                                 ) ? 'data-hj-suppress' : ''
                                             });
                                         }
-                                  );
+                                    );
                                 }
                             }
                         )
@@ -495,7 +495,7 @@
 
                 postFormSubmission: function() {
                     if (_.compact(this.errors).length) {
-                    // The form did not get submitted due to validation errors.
+                        // The form did not get submitted due to validation errors.
                         $(this.el).show(); // Show in case the form was hidden for auto-submission
                     }
                 },
@@ -527,7 +527,7 @@
                         $el,
                         i;
 
-                // As per requirements, disable positive validation for submission.
+                    // As per requirements, disable positive validation for submission.
                     this.positiveValidationEnabled = false;
 
                     for (i = 0; i < elements.length; i++) {
@@ -602,7 +602,7 @@
                 genericLiveValidateHandler: function($el) {
                     var elementType = $el.attr('type');
                     if (elementType === 'checkbox') {
-                    // We are already validating checkboxes in a generic way.
+                        // We are already validating checkboxes in a generic way.
                         this.liveValidateCheckbox($el);
                     } else {
                         this.genericLiveValidate($el);
@@ -620,3 +620,4 @@
             });
         });
 }).call(this, define || RequireJS.define);
+//test1

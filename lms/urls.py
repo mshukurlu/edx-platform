@@ -534,6 +534,20 @@ urlpatterns += [
     ),
 
     re_path(
+        r'^courses/{}/instructor/student$'.format(
+            settings.COURSE_ID_PATTERN,
+        ),
+        instructor_dashboard_views.instructor_dashboard_2_students,
+        name='instructor_dashboard_students',
+    ),
+    re_path(
+        r'^courses/{}/instructor/student-grades/(?P<student_id>[0-9a-zA-Z]+)?$'.format(
+            settings.COURSE_ID_PATTERN,
+        ),
+        instructor_dashboard_views.instructor_dashboard_2_student_grades,
+        name='instructor_dashboard_student_grades',
+    ),
+    re_path(
         r'^courses/{}/set_course_mode_price$'.format(
             settings.COURSE_ID_PATTERN,
         ),

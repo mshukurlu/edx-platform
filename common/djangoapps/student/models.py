@@ -537,6 +537,94 @@ class UserProfile(models.Model):
         blank=True, null=True, max_length=6, db_index=True, choices=GENDER_CHOICES
     )
 
+
+    WORKING_STATUS_CHOICES = (
+        ('1',gettext_noop('İşləyirəm')),
+        ('2',gettext_noop('İşləmirəm'))
+    )
+
+    working_status = models.CharField(
+        blank=True,
+        null=True,
+        max_length=2,
+        default=0,
+        choices=WORKING_STATUS_CHOICES
+    )
+
+    EDUCATION_STATUS_CHOICES = (
+        ('1',gettext_noop('Tələbəyəm')),
+        ('2',gettext_noop('Tələbə deyiləm'))
+    )
+
+    education_status = models.CharField(
+        blank=True,
+        null=True,
+        max_length=2,
+        default=0,
+        choices=EDUCATION_STATUS_CHOICES
+    )
+
+    UNIVERSITY_CHOICES = (
+        ('1',gettext_noop('Ada Universiteti')),
+        ('2',gettext_noop('Azərbaycan Əmək və Sosial Münasibətlər Akademiyası')),
+        ('3',gettext_noop('Azərbaycan Milli Konservatoriyası')),
+        ('4',gettext_noop('Azərbaycan Dillər Universiteti')),
+        ('5',gettext_noop('Azərbaycan Dövlət Aqrar Universiteti')),
+        ('7',gettext_noop('Azərbaycan Dövlət Bədən Tərbiyəsi və İdman Akademiyası ')),
+        ('8',gettext_noop('Azərbaycan Dövlət Dəniz Akademiyası ')),
+        ('9',gettext_noop('Azərbaycan Dövlət İqtisad Universiteti')),
+        ('10',gettext_noop('Azərbaycan Dövlət Mədəniyyət və İncəsənət Universiteti')),
+        ('11',gettext_noop('Azərbaycan Dövlət Neft və Sənaye Universiteti')),
+        ('12',gettext_noop('Azərbaycan Dövlət Pedaqoji Universiteti')),
+        ('13',gettext_noop('Azərbaycan Dövlət Rəssamlıq Akademiyası ')),
+        ('14',gettext_noop('Azərbaycan İlahiyyat İnstitutu')),
+        ('15',gettext_noop('Azərbaycan Kooperasiya Universiteti')),
+        ('16',gettext_noop('Azərbaycan Memarlıq və İnşaat Universiteti')),
+        ('17',gettext_noop('Azərbaycan Milli Elmlər Akademiyası')),
+        ('18',gettext_noop('Azərbaycan Respublikası Prezidenti yanında Dövlət İdarəçilik Akademiyası')),
+        ('19',gettext_noop('Azərbaycan Respublikasının Təhsil İnstitutu')),
+        ('20',gettext_noop('Azərbaycan Respublikasının Təhsil Nazirliyi')),
+        ('21',gettext_noop('Azərbaycan Texniki Universiteti')),
+        ('22',gettext_noop('Azərbaycan Texnologiya Universiteti')),
+        ('23',gettext_noop('Azərbaycan Tibb Universiteti ')),
+        ('24',gettext_noop('Azərbaycan Turizm və Menecment Universiteti')),
+        ('25',gettext_noop('Azərbaycan Universiteti')),
+        ('26',gettext_noop('Bakı İslam Universiteti')),
+        ('27',gettext_noop('Bakı Ali Neft Məktəbi ')),
+        ('28',gettext_noop('Bakı Avrasiya Universiteti')),
+        ('29',gettext_noop('Bakı Biznes Universiteti')),
+        ('30',gettext_noop('Bakı Dövlət Universiteti')),
+        ('31',gettext_noop('Bakı Mühəndislik Universiteti')),
+        ('32',gettext_noop('Bakı Musiqi Akademiyası ')),
+        ('33',gettext_noop('Bakı Qızlar Universiteti')),
+        ('34',gettext_noop('Bakı Slavyan Universiteti')),
+        ('35',gettext_noop('Bakı Xoreoqrafiya Akademiyası')),
+        ('36',gettext_noop('Gəncə Dövlət Universiteti')),
+        ('37',gettext_noop('İ. M. Seçenov adına Birinci Moskva Dövlət Tibb Universitetinin Bakı filialı ')),
+        ('38',gettext_noop('Lənkəran Dövlət Universiteti')),
+        ('39',gettext_noop('M. V. Lomonosov adına Moskva Dövlət Universitetinin Bakı filialı')),
+        ('40',gettext_noop('Milli Aviasiya Akademiyası')),
+        ('41',gettext_noop('Mingəçevir Dövlət Universiteti')),
+        ('42',gettext_noop('Naxçıvan Dövlət Universiteti')),
+        ('43',gettext_noop('Naxçıvan Müəllimlər İnstitutu')),
+        ('44',gettext_noop('Naxçıvan Müəllimlər İnstitutu')),
+        ('45',gettext_noop('Naxçıvan Universiteti ')),
+        ('46',gettext_noop('Odlar Yurdu Universiteti')),
+        ('47',gettext_noop('Qərbi Kaspi Universiteti')),
+        ('48',gettext_noop('Sumqayıt Dövlət Universiteti')),
+        ('49',gettext_noop('Xəzər Universiteti ')),
+        ('50',gettext_noop('Digər')),
+
+
+    )
+
+    university = models.CharField(
+        blank=True,
+        null=True,
+        max_length=2,
+        default=0,
+        choices=UNIVERSITY_CHOICES
+    )
     # [03/21/2013] removed these, but leaving comment since there'll still be
     # p_se and p_oth in the existing data in db.
     # ('p_se', 'Doctorate in science or engineering'),
@@ -646,6 +734,22 @@ class UserProfile(models.Model):
         """ Convenience method that returns the human readable level of education. """
         if self.level_of_education:
             return self.__enumerable_to_display(self.LEVEL_OF_EDUCATION_CHOICES, self.level_of_education)
+
+    @property
+    def working_status_display(self):
+        """ Convenience method that returns the human readable working_status. """
+        if self.working_status:
+            return self.__enumerable_to_display(self.WORKING_STATUS_CHOICES, self.working_status)
+    @property
+    def university_display(self):
+        """ Convenience method that returns the human readable univeristy. """
+        if self.university:
+            return self.__enumerable_to_display(self.UNIVERSITY_CHOICES, self.university)
+    @property
+    def education_status_display(self):
+        """ Convenience method that returns the human readable education_status. """
+        if self.education_status:
+            return self.__enumerable_to_display(self.EDUCATION_CHOICES, self.education_status)
 
     @property
     def gender_display(self):

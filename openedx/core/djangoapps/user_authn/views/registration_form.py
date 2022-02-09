@@ -324,7 +324,12 @@ class RegistrationFormFactory:
         "terms_of_service",
         "profession",
         "specialty",
+        "working_status",
+        "phone_number",
+        "university",
+        "education_status"
     ]
+
 
     def _is_field_visible(self, field_name):
         """Check whether a field is visible based on Django settings. """
@@ -601,6 +606,107 @@ class RegistrationFormFactory:
         form_desc.add_field(
             "level_of_education",
             label=education_level_label,
+            field_type="select",
+            options=options,
+            include_default_option=True,
+            required=required,
+            error_messages={
+                "required": error_msg
+            }
+        )
+    def _add_phone_number_field(self, form_desc, required=True):
+        """Add a phone_number field to a form description.
+        Arguments:
+            form_desc: A form description
+        Keyword Arguments:
+            required (bool): Whether this field is required; defaults to True
+        """
+        # Translators: This label appears above a field on the registration form
+        # which allows the user to input the city in which they live.
+        city_label = _("Phone Number")
+        error_msg = accounts.REQUIRED_FIELD_CITY_MSG
+
+        form_desc.add_field(
+            "phone_number",
+            label=city_label,
+            required=required,
+            error_messages={
+                "required": error_msg
+            }
+        )
+
+    def _add_working_status_field(self, form_desc, required=True):
+        """Add a working status field to a form description.
+        Arguments:
+            form_desc: A form description
+        Keyword Arguments:
+            required (bool): Whether this field is required; defaults to null
+        """
+        # Translators: This label appears above a dropdown menu on the registration
+        # form used to select the user's working status
+        working_status_label = _("Aşağıdakılardan hansı hal-hazırdakı statusunuzu göstərir?")
+        error_msg = accounts.REQUIRED_FIELD_LEVEL_OF_EDUCATION_MSG
+
+        # The labels are marked for translation in UserProfile model definition.
+        # pylint: disable=translation-of-non-string
+        options = [(name, _(label)) for name, label in UserProfile.WORKING_STATUS_CHOICES]
+        form_desc.add_field(
+            "working_status",
+            label= working_status_label,
+            field_type="select",
+            options=options,
+            include_default_option=True,
+            required=required,
+            error_messages={
+                "required": error_msg
+            }
+        )
+
+    def _add_education_status_field(self, form_desc, required=True):
+        """Add a working status field to a form description.
+        Arguments:
+            form_desc: A form description
+        Keyword Arguments:
+            required (bool): Whether this field is required; defaults to null
+        """
+        # Translators: This label appears above a dropdown menu on the registration
+        # form used to select the user's working status
+        education_status_label = _("Aşağıdakılardan hansı hal-hazırdakı statusunuzu göstərir?")
+        error_msg = accounts.REQUIRED_FIELD_LEVEL_OF_EDUCATION_MSG
+
+        # The labels are marked for translation in UserProfile model definition.
+        # pylint: disable=translation-of-non-string
+        options = [(name, _(label)) for name, label in UserProfile.EDUCATION_STATUS_CHOICES]
+        form_desc.add_field(
+            "education_status",
+            label=education_status_label,
+            field_type="select",
+            options=options,
+            include_default_option=True,
+            required=required,
+            error_messages={
+                "required": error_msg
+            }
+        )
+
+    def _add_university_field(self, form_desc, required=True):
+        """Add a university field to a form description.
+        Arguments:
+            form_desc: A form description
+        Keyword Arguments:
+            required (bool): Whether this field is required; defaults to null
+        """
+        # Translators: This label appears above a dropdown menu on the registration
+        # form used to select the user's working status
+        university_label = _("Təhsil müəsisəsini seçin")
+        error_msg = accounts.REQUIRED_FIELD_LEVEL_OF_EDUCATION_MSG
+
+        # The labels are marked for translation in UserProfile model definition.
+        # pylint: disable=translation-of-non-string
+        options = [(name, _(label)) for name, label in UserProfile.UNIVERSITY_CHOICES]
+        form_desc.add_field(
+            "university",
+            label= university_label,
             field_type="select",
             options=options,
             include_default_option=True,
