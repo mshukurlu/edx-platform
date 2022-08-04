@@ -698,7 +698,7 @@ class RegistrationFormFactory:
         """
         # Translators: This label appears above a dropdown menu on the registration
         # form used to select the user's working status
-        university_label = _("Təhsil müəsisəsini seçin")
+        university_label = _("Təhsil aldığınız və ya son olaraq bitirdiyiniz təhsil müəssisəsinin adı")
         error_msg = accounts.REQUIRED_FIELD_LEVEL_OF_EDUCATION_MSG
 
         # The labels are marked for translation in UserProfile model definition.

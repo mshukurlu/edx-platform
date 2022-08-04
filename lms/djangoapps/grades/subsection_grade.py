@@ -6,6 +6,8 @@ SubsectionGrade Class
 from abc import ABCMeta
 from collections import OrderedDict
 from logging import getLogger
+import logging
+from re import sub
 
 from lazy import lazy
 
@@ -23,6 +25,7 @@ class SubsectionGradeBase(metaclass=ABCMeta):
     """
 
     def __init__(self, subsection):
+
         self.location = subsection.location
         self.display_name = block_metadata_utils.display_name_with_default(subsection)
         self.url_name = block_metadata_utils.url_name_for_block(subsection)
@@ -36,7 +39,8 @@ class SubsectionGradeBase(metaclass=ABCMeta):
         self.hide_after_due = hidden_content_data and hidden_content_data.fields.get('merged_hide_after_due')
         self.self_paced = subsection.self_paced
         self.show_correctness = getattr(subsection, 'show_correctness', '')
-
+        self.is_manually_graded = getattr(subsection, 'is_manually_graded',False)
+        self.auto_grade = hidden_content_data and hidden_content_data.fields.get('auto_grade')
         self.course_version = getattr(subsection, 'course_version', None)
         self.subtree_edited_timestamp = getattr(subsection, 'subtree_edited_on', None)
 

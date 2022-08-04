@@ -48,6 +48,8 @@ class GradesTransformer(BlockStructureTransformer):
         'course_version',
         'subtree_edited_on',
         'show_correctness',
+        'is_manually_graded',
+        'auto_grade'
     ]
 
     EXPLICIT_GRADED_FIELD_NAME = 'explicit_graded'

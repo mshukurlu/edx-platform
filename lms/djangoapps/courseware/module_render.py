@@ -1,8 +1,7 @@
 """
 Module rendering
 """
-
-
+from smtplib import SMTPException
 import json
 import logging
 import textwrap
@@ -85,7 +84,7 @@ from openedx.core.lib.xblock_utils import wrap_xblock
 from openedx.features.course_duration_limits.access import course_expiration_wrapper
 from openedx.features.discounts.utils import offer_banner_wrapper
 from openedx.features.content_type_gating.services import ContentTypeGatingService
-from common.djangoapps.student.models import anonymous_id_for_user, user_by_anonymous_id
+from common.djangoapps.student.models import CourseAccessRole, anonymous_id_for_user, user_by_anonymous_id
 from common.djangoapps.student.roles import CourseBetaTesterRole
 from common.djangoapps.track import contexts
 from common.djangoapps.util import milestones_helpers
@@ -98,6 +97,8 @@ from xmodule.modulestore.django import modulestore
 from xmodule.modulestore.exceptions import ItemNotFoundError
 from xmodule.util.sandboxing import can_execute_unsafe_code, get_python_lib_zip
 from xmodule.x_module import XModuleDescriptor
+from lms.djangoapps.instructor_task.models import StaffNotification
+from openedx.core.djangoapps.bookmarks.models import XBlockCache
 
 log = logging.getLogger(__name__)
 
@@ -1242,8 +1243,38 @@ def _invoke_xblock_handler(request, course_id, usage_id, handler, suffix, course
             log.exception("error executing xblock handler")
             raise
 
+        if handler=='submit':
+            sendNotificationToStaff(course_id=course_id,usage_key=usage_key)
+
+
     return webob_to_django_response(resp)
 
+def sendNotificationToStaff(course_id,usage_key):
+
+     staffList = CourseAccessRole.objects.filter(role='staff').filter(course_id=course_id)
+     course_key = CourseKey.from_string(course_id)
+     course = modulestore().get_course(course_key)
+     bookmark = XBlockCache.objects.filter(usage_key=usage_key).get()
+     notificationMessage = '{} kursunda {} tapşırığı üçün tələbənin yeni cavabı var'.format(course.display_name,bookmark.display_name)
+
+    #  try:
+    #     send_mail(
+    #      'New submission to Course',
+    #       notificationMessage,
+    #       'no-reply@tehsilim.edu.az',
+    #       ['shmurad@edumedia.az'],
+    #       fail_silently=False,
+    #       )
+    #     log.info('Email sent WORKING')
+    #  except SMTPException as e:
+    #       log.info('Email sending not working '+str(e))
+    #  except Exception as e:
+    #      log.info('Email sending fail exception'+str(e))
+
+     for staff in staffList:
+        staff_notification = StaffNotification(text=notificationMessage,email=staff.user.email,course_id=staff.course_id,staff_id=staff.user.id)
+        staff_notification.save()
+     pass
 
 @api_view(['GET'])
 @view_auth_classes(is_authenticated=True)

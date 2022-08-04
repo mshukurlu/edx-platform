@@ -904,7 +904,7 @@ FEATURES = {
     # .. toggle_target_removal_date: None
     # .. toggle_tickets: https://openedx.atlassian.net/browse/TNL-7273
     # .. toggle_warnings: This temporary feature toggle does not have a target removal date.
-    'ENABLE_ORA_USERNAMES_ON_DATA_EXPORT': False,
+    'ENABLE_ORA_USERNAMES_ON_DATA_EXPORT': True,
 
     # .. toggle_name: FEATURES['ENABLE_COURSE_ASSESSMENT_GRADE_CHANGE_SIGNAL']
     # .. toggle_implementation: DjangoSetting
@@ -3444,9 +3444,9 @@ LOGIN_REDIRECT_WHITELIST = []
 #   available for all Open edX platforms. In such cases, the "honor_code" registration field should be "hidden".
 REGISTRATION_EXTRA_FIELDS = {
     'confirm_email': 'hidden',
-    'level_of_education': 'optional',
-    'gender': 'optional',
-    'year_of_birth': 'optional',
+    'level_of_education': 'required',
+    'gender': 'required',
+    'year_of_birth': 'required',
     'mailing_address': 'optional',
     'goals': 'optional',
     'honor_code': 'required',

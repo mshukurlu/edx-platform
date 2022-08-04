@@ -583,7 +583,7 @@ class UserProfile(models.Model):
         ('17',gettext_noop('Azərbaycan Milli Elmlər Akademiyası')),
         ('18',gettext_noop('Azərbaycan Respublikası Prezidenti yanında Dövlət İdarəçilik Akademiyası')),
         ('19',gettext_noop('Azərbaycan Respublikasının Təhsil İnstitutu')),
-        ('20',gettext_noop('Azərbaycan Respublikasının Təhsil Nazirliyi')),
+        #('20',gettext_noop('Azərbaycan Respublikasının Təhsil Nazirliyi')),
         ('21',gettext_noop('Azərbaycan Texniki Universiteti')),
         ('22',gettext_noop('Azərbaycan Texnologiya Universiteti')),
         ('23',gettext_noop('Azərbaycan Tibb Universiteti ')),

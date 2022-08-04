@@ -1,8 +1,10 @@
 """
 Defines an endpoint for gradebook data related to a course.
 """
-
-
+from operator import sub
+from lms.djangoapps.courseware.masquerade import is_masquerading_as_specific_student, setup_masquerade
+from xmodule.x_module import PUBLIC_VIEW, STUDENT_VIEW
+from lms.djangoapps.courseware.module_render import get_module_by_usage_id
 import logging
 from collections import namedtuple
 from contextlib import contextmanager
@@ -69,7 +71,7 @@ from openedx.core.lib.cache_utils import request_cached
 from openedx.core.lib.courses import get_course_by_id
 from xmodule.modulestore.django import modulestore
 from xmodule.util.misc import get_default_short_labeler
-
+from lms.djangoapps.course_api.blocks.api import get_blocks
 log = logging.getLogger(__name__)
 
 
@@ -417,7 +419,8 @@ class GradebookView(GradeViewMixin, PaginatedAPIView):
                     "score_earned": 0.0,
                     "score_possible": 0.0,
                     "section_block_id": "block-v1:edX+DemoX+Demo_Course+type@chapter+block@abcdefgh123",
-                    "subsection_name": "Demo Course Overview"
+                    "subsection_name": "Demo Course Overview",
+                    "due":"2022-02-18 00:00:00"
                 },
             ],
         }
@@ -436,6 +439,7 @@ class GradebookView(GradeViewMixin, PaginatedAPIView):
 
     pagination_class = CourseEnrollmentPagination
 
+
     def _section_breakdown(self, course, graded_subsections, course_grade):
         """
         Given a course_grade and a list of graded subsections for a given course,
@@ -449,8 +453,28 @@ class GradebookView(GradeViewMixin, PaginatedAPIView):
         breakdown = []
         default_labeler = get_default_short_labeler(course)
 
+        usage_key = ''
+
         for subsection in graded_subsections:
+
+            usage_key=UsageKey.from_string(str(subsection.location))
+            sequence, _ = get_module_by_usage_id(
+            self.request,
+            str(usage_key.course_key),
+            str(usage_key),
+            disable_staff_debug_info=True,
+            will_recheck_access=True)
+            view = STUDENT_VIEW
+
             subsection_grade = course_grade.subsection_grade(subsection.location)
+
+            context = {'specific_masquerade': is_masquerading_as_specific_student(self.request.user, usage_key.course_key)}
+            problemLocation = ''
+            for item in sequence.get_metadata(view=view, context=context)['items']:
+                if item['type']=='problem':
+                   problemLocation = item['id']
+                   break
+
             short_label = default_labeler(subsection_grade.format)
 
             attempted = False
@@ -475,6 +499,8 @@ class GradebookView(GradeViewMixin, PaginatedAPIView):
             # TODO: https://openedx.atlassian.net/browse/EDUCATOR-3559 -- Some fields should be renamed, others removed:
             # 'displayed_value' should maybe be 'description_percent'
             # 'grade_description' should be 'description_ratio'
+
+
             breakdown.append({
                 'attempted': attempted,
                 'category': subsection_grade.format,
@@ -484,6 +510,11 @@ class GradebookView(GradeViewMixin, PaginatedAPIView):
                 'score_earned': score_earned,
                 'score_possible': score_possible,
                 'subsection_name': subsection_grade.display_name,
+                'due':str(subsection_grade.due),
+                'graded':subsection_grade.graded,
+                'is_manually_graded':subsection_grade.is_manually_graded,
+                'auto_grade':subsection_grade.auto_grade,
+                'problemLocation':problemLocation
             })
         return breakdown
 
@@ -498,6 +529,7 @@ class GradebookView(GradeViewMixin, PaginatedAPIView):
             graded_subsections: A list of graded subsections in the given course.
             course_grade: A CourseGrade object.
         """
+
         user_entry = self._serialize_user_grade(user, course.id, course_grade)
         breakdown = self._section_breakdown(course, graded_subsections, course_grade)
 

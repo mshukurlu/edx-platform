@@ -541,11 +541,23 @@ urlpatterns += [
         name='instructor_dashboard_students',
     ),
     re_path(
-        r'^courses/{}/instructor/student-grades/(?P<student_id>[0-9a-zA-Z]+)?$'.format(
+        r'^courses/{}/instructor/student-grades/(?P<student_id>[0-9a-zA-Z_-]+)?$'.format(
             settings.COURSE_ID_PATTERN,
         ),
         instructor_dashboard_views.instructor_dashboard_2_student_grades,
         name='instructor_dashboard_student_grades',
+    ),
+      re_path(
+        fr'^xblock2/{settings.USAGE_KEY_PATTERN}$',
+        instructor_dashboard_views.render_xblock,
+        name='renderxblock2'
+    ),
+     re_path(
+        r'^courses/{}/instructor/student-assesments/(?P<student_id>[0-9]+)/(?P<modul_id>.*)$'.format(
+            settings.COURSE_ID_PATTERN,
+        ),
+        instructor_dashboard_views.instructor_dashboard_2_student_assisment,
+        name='instructor_dashboard_student_assisment',
     ),
     re_path(
         r'^courses/{}/set_course_mode_price$'.format(

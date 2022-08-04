@@ -44,6 +44,11 @@ class SectionBreakdownSerializer(serializers.Serializer):
     score_earned = serializers.FloatField()
     score_possible = serializers.FloatField()
     subsection_name = serializers.CharField()
+    due = serializers.CharField()
+    graded = serializers.BooleanField()
+    auto_grade = serializers.BooleanField()
+    is_manually_graded = serializers.BooleanField()
+    problemLocation = serializers.CharField()
 
 
 class StudentGradebookEntrySerializer(serializers.Serializer):

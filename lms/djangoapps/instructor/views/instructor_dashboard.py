@@ -1,6 +1,9 @@
 """
 Instructor Dashboard Views
 """
+from lib2to3.pgen2.token import EQUAL
+from multiprocessing import context
+from re import sub
 from common.djangoapps.student.models import UserProfile
 from lms.djangoapps.course_api.blocks.api import get_blocks
 from lms.djangoapps.courseware.models import StudentModule as CoursewareStudentModule
@@ -71,7 +74,49 @@ from .. import permissions
 from ..toggles import data_download_v2_is_enabled
 from .tools import get_units_with_due_date, title_or_url
 from lms.djangoapps.grades.api import context as grades_context
+from opaque_keys.edx.keys import UsageKey
+from lms.djangoapps.courseware.models import StudentModule
+from django.http import JsonResponse
+import json
+
+from submissions.models import Submission
+from submissions.api import get_submission_and_student
+
+from edx_django_utils.monitoring import set_custom_attribute, set_custom_attributes_for_course_key
+from django.http import  HttpResponseBadRequest
+from lms.djangoapps.courseware.courses import (
+    can_self_enroll_in_course,
+    course_open_for_self_enrollment,
+    get_course,
+    get_course_date_blocks,
+    get_course_overview_with_access,
+    get_course_with_access,
+    get_courses,
+    get_current_child,
+    get_permission_for_course_about,
+    get_studio_url,
+    sort_by_announcement,
+    sort_by_start_date
+)
+from lms.djangoapps.courseware.exceptions import CourseAccessRedirect, Redirect
+from lms.djangoapps.courseware.masquerade import setup_masquerade, is_masquerading_as_specific_student
+from lms.djangoapps.course_goals.models import UserActivity
+from openedx.features.course_experience.url_helpers import get_learning_mfe_home_url, is_request_from_learning_mfe
+from openedx.features.course_experience.utils import dates_banner_should_display
+#from lms.djangoapps.courseware.views import enclosing_sequence_for_gating_checks, get_optimization_flags_for_content
+
+from django.shortcuts import redirect
+from lms.djangoapps.edxnotes.helpers import is_feature_enabled
+from lms.djangoapps.courseware.date_summary import verified_upgrade_deadline_link
+from openedx.core.lib.mobile_utils import is_request_from_mobile_app
+from django.views.decorators.http import require_GET, require_http_methods, require_POST
+from common.djangoapps.util.views import ensure_valid_course_key, ensure_valid_usage_key
+from django.views.decorators.clickjacking import xframe_options_exempt
+from django.db import transaction
+from lms.djangoapps.courseware.toggles import COURSEWARE_OPTIMIZED_RENDER_XBLOCK
 log = logging.getLogger(__name__)
+
+
 
 
 class InstructorDashboardTab(CourseTab):
@@ -104,6 +149,316 @@ def show_analytics_dashboard_message(course_key):
         return settings.ANALYTICS_DASHBOARD_URL and ccx_analytics_enabled
 
     return settings.ANALYTICS_DASHBOARD_URL
+
+@ensure_csrf_cookie
+@cache_control(no_cache=True,no_store=True,must_revalidate=True)
+def instructor_dashboard_2_student_assisment(request,course_id,student_id,modul_id):
+    #"block-v1:test-course+00001+0001+type@vertical+block@7ec8c4007e1f49fbaecea227db8aa7f4"
+    #submission = get_submission_and_student("c19c62ae-570e-4a0b-bc67-a54602312af7")
+    #log.info(submission)
+    #return JsonResponse('ok',safe=False)
+    #return JsonResponse(submission['answer'],safe=False)
+    u_key = UsageKey.from_string(modul_id)
+    submissionMap = {}
+    userReq = None
+    responseBlocks = get_blocks(
+          request,
+          u_key,
+          userReq,
+          5,
+          None,
+          'children,graded,format,student_view_multi_device,lti_url,due,type,display_name',
+          [],
+          None,
+          None,
+          False,)
+    openassessments = []
+    for item in responseBlocks:
+        if item['type'] == 'openassessment':
+            openassessments.append(item['id'])
+       #return JsonResponse(i['id'],safe=False)
+
+    student_submissions = StudentModule.objects.filter(module_state_key__in=openassessments).filter(student_id=student_id)
+
+    submission_ids = []
+    for submission in student_submissions:
+        string_state = json.loads(submission.state)
+        submission_ids.append(string_state['submission_uuid'])
+        submissionMap[string_state['submission_uuid']] = {
+            'submission_uuid':string_state['submission_uuid'],
+            'module_state_key':str(submission.module_state_key),
+            'display_name':next((x['display_name'] for x in responseBlocks if x['id'] == str(submission.module_state_key)),'Test ad'),
+            'grade':submission.grade,
+            'max_grade':submission.max_grade,
+            'state':string_state,
+            'has_saved':False,
+            'saved_response_text':[],
+            'saved_files_descriptions':[],
+            'saved_files_names':[],
+            'texts':[]
+        }
+        if 'has_saved' in string_state:
+            submissionMap[string_state['submission_uuid']]['has_saved'] = True
+            submissionMap[string_state['submission_uuid']]['saved_response_text'] = json.loads(string_state['saved_response'])
+        log.info(submission.module_state_key)
+
+    submissions = Submission.objects.filter(uuid__in=submission_ids)
+
+    studentProfile = UserProfile.objects.filter(user_id=student_id).get()
+    for submission in submissions:
+        uuid = str(submission.uuid)
+        submissionMap[uuid]['id'] = submission.id
+        submissionMap[uuid]['submitted_at'] = str(submission.submitted_at)
+        submissionMap[uuid]['texts'] = submission.answer['parts']
+   # return JsonResponse(submissionMap,safe=False)
+
+    context = {
+        "submissions":submissionMap,
+        "course_id":course_id,
+        "studentProfile":studentProfile
+    }
+    return render_to_response('instructor/instructor_dashboard_2/instructor_dashboard_2_student_assessment.html',context)
+
+
+def get_optimization_flags_for_content(block, fragment):
+    """
+    Return a dict with a set of display options appropriate for the block.
+
+    This is going to start in a very limited way.
+    """
+    safe_defaults = {
+        'enable_mathjax': True
+    }
+
+    # Only run our optimizations on the leaf HTML and ProblemBlock nodes. The
+    # mobile apps access these directly, and we don't have to worry about
+    # XBlocks that dynamically load content, like inline discussions.
+    usage_key = block.location
+
+    # For now, confine ourselves to optimizing just the HTMLBlock
+    if usage_key.block_type != 'html':
+        return safe_defaults
+
+    if not COURSEWARE_OPTIMIZED_RENDER_XBLOCK.is_enabled(usage_key.course_key):
+        return safe_defaults
+
+    inspector = XBlockContentInspector(block, fragment)
+    flags = dict(safe_defaults)
+    flags['enable_mathjax'] = inspector.has_mathjax_content()
+
+    return flags
+
+class XBlockContentInspector:
+    """
+    Class to inspect rendered XBlock content to determine dependencies.
+
+    A lot of content has been written with the assumption that certain
+    JavaScript and assets are available. This has caused us to continue to
+    include these assets in the render_xblock view, despite the fact that they
+    are not used by the vast majority of content.
+
+    In order to try to provide faster load times for most users on most content,
+    this class has the job of detecting certain patterns in XBlock content that
+    would imply these dependencies, so we know when to include them or not.
+    """
+    def __init__(self, block, fragment):
+        self.block = block
+        self.fragment = fragment
+
+    def has_mathjax_content(self):
+        """
+        Returns whether we detect any MathJax in the fragment.
+
+        Note that this only works for things that are rendered up front. If an
+        XBlock is capable of modifying the DOM afterwards to inject math content
+        into the page, this will not catch it.
+        """
+        # The following pairs are used to mark Mathjax syntax in XBlocks. There
+        # are other options for the wiki, but we don't worry about those here.
+        MATHJAX_TAG_PAIRS = [
+            (r"\(", r"\)"),
+            (r"\[", r"\]"),
+            ("[mathjaxinline]", "[/mathjaxinline]"),
+            ("[mathjax]", "[/mathjax]"),
+        ]
+        content = self.fragment.body_html()
+        for (start_tag, end_tag) in MATHJAX_TAG_PAIRS:
+            if start_tag in content and end_tag in content:
+                return True
+
+        return False
+
+
+
+def enclosing_sequence_for_gating_checks(block):
+    """
+    Return the first ancestor of this block that is a SequenceDescriptor.
+
+    Returns None if there is no such ancestor. Returns None if you call it on a
+    SequenceDescriptor directly.
+
+    We explicitly test against the three known tag types that map to sequences
+    (even though two of them have been long since deprecated and are never
+    used). We _don't_ test against SequentialDescriptor directly because:
+
+    1. A direct comparison on the type fails because we magically mix it into a
+       SequenceDescriptorWithMixins object.
+    2. An isinstance check doesn't give us the right behavior because Courses
+       and Sections both subclass SequenceDescriptor. >_<
+
+    Also important to note that some content isn't contained in Sequences at
+    all. LabXchange uses learning pathways, but even content inside courses like
+    `static_tab`, `book`, and `about` live outside the sequence hierarchy.
+    """
+    seq_tags = ['sequential', 'problemset', 'videosequence']
+
+    # If it's being called on a Sequence itself, then don't bother crawling the
+    # ancestor tree, because all the sequence metadata we need for gating checks
+    # will happen automatically when rendering the render_xblock view anyway,
+    # and we don't want weird, weird edge cases where you have nested Sequences
+    # (which would probably "work" in terms of OLX import).
+    if block.location.block_type in seq_tags:
+        return None
+
+    ancestor = block
+    while ancestor and ancestor.location.block_type not in seq_tags:
+        ancestor = ancestor.get_parent()  # Note: CourseBlock's parent is None
+
+    if ancestor:
+        # get_parent() returns a parent block instance cached on the block which does not
+        # have the ModuleSystem bound to it so we need to get it again with get_block() which will set up everything.
+        return block.runtime.get_block(ancestor.location)
+    return None
+
+@require_http_methods(["GET", "POST"])
+@ensure_valid_usage_key
+@xframe_options_exempt
+@transaction.non_atomic_requests
+@ensure_csrf_cookie
+def render_xblock(request, usage_key_string, check_if_enrolled=True):
+    """
+    Returns an HttpResponse with HTML content for the xBlock with the given usage_key.
+    The returned HTML is a chromeless rendering of the xBlock (excluding content of the containing courseware).
+    """
+    from lms.urls import RESET_COURSE_DEADLINES_NAME
+    from openedx.features.course_experience.urls import COURSE_HOME_VIEW_NAME
+
+    usage_key = UsageKey.from_string(usage_key_string)
+
+    usage_key = usage_key.replace(course_key=modulestore().fill_in_run(usage_key.course_key))
+    course_key = usage_key.course_key
+
+    # Gathering metrics to make performance measurements easier.
+    set_custom_attributes_for_course_key(course_key)
+    set_custom_attribute('usage_key', usage_key_string)
+    set_custom_attribute('block_type', usage_key.block_type)
+
+    requested_view = request.GET.get('view', 'student_view')
+    if requested_view != 'student_view' and requested_view != 'public_view':  # lint-amnesty, pylint: disable=consider-using-in
+        return HttpResponseBadRequest(
+            f"Rendering of the xblock view '{bleach.clean(requested_view, strip=True)}' is not supported."
+        )
+
+    staff_access = has_access(request.user, 'staff', course_key)
+
+    with modulestore().bulk_operations(course_key):
+        # verify the user has access to the course, including enrollment check
+        try:
+            course = get_course_with_access(request.user, 'load', course_key, check_if_enrolled=check_if_enrolled)
+        except CourseAccessRedirect:
+            raise Http404("Course not found.")  # lint-amnesty, pylint: disable=raise-missing-from
+
+        # with course access now verified:
+        # assume masquerading role, if applicable.
+        # (if we did this *before* the course access check, then course staff
+        #  masquerading as learners would often be denied access, since course
+        #  staff are generally not enrolled, and viewing a course generally
+        #  requires enrollment.)
+        _course_masquerade, request.user = setup_masquerade(
+            request,
+            course_key,
+            staff_access,
+        )
+
+        # Record user activity for tracking progress towards a user's course goals (for mobile app)
+        UserActivity.record_user_activity(
+            request.user, usage_key.course_key, request=request, only_if_mobile_app=True
+        )
+
+        # get the block, which verifies whether the user has access to the block.
+        recheck_access = request.GET.get('recheck_access') == '1'
+        block, _ = get_module_by_usage_id(
+            request, str(course_key), str(usage_key), disable_staff_debug_info=True, course=course,
+            will_recheck_access=recheck_access
+        )
+
+        student_view_context = request.GET.dict()
+        student_view_context['show_bookmark_button'] = request.GET.get('show_bookmark_button', '0') == '1'
+        student_view_context['show_title'] = request.GET.get('show_title', '1') == '1'
+
+        is_learning_mfe = is_request_from_learning_mfe(request)
+        # Right now, we only care about this in regards to the Learning MFE because it results
+        # in a bad UX if we display blocks with access errors (repeated upgrade messaging).
+        # If other use cases appear, consider removing the is_learning_mfe check or switching this
+        # to be its own query parameter that can toggle the behavior.
+        student_view_context['hide_access_error_blocks'] = is_learning_mfe and recheck_access
+
+        enable_completion_on_view_service = False
+        completion_service = block.runtime.service(block, 'completion')
+        if completion_service and completion_service.completion_tracking_enabled():
+            if completion_service.blocks_to_mark_complete_on_view({block}):
+                enable_completion_on_view_service = True
+                student_view_context['wrap_xblock_data'] = {
+                    'mark-completed-on-view-after-delay': completion_service.get_complete_on_view_delay_ms()
+                }
+
+        missed_deadlines, missed_gated_content = dates_banner_should_display(course_key, request.user)
+
+        # Some content gating happens only at the Sequence level (e.g. "has this
+        # timed exam started?").
+        ancestor_sequence_block = enclosing_sequence_for_gating_checks(block)
+        if ancestor_sequence_block:
+            context = {'specific_masquerade': is_masquerading_as_specific_student(request.user, course_key)}
+            # If the SequenceModule feels that gating is necessary, redirect
+            # there so we can have some kind of error message at any rate.
+            if ancestor_sequence_block.descendants_are_gated(context):
+                return redirect(
+                    reverse(
+                        'render_xblock',
+                        kwargs={'usage_key_string': str(ancestor_sequence_block.location)}
+                    )
+                )
+
+        fragment = block.render(requested_view, context=student_view_context)
+        optimization_flags = get_optimization_flags_for_content(block, fragment)
+
+        context = {
+            'fragment': fragment,
+            'course': course,
+            'disable_accordion': True,
+            'allow_iframing': True,
+            'disable_header': True,
+            'disable_footer': True,
+            'disable_window_wrap': True,
+            'enable_completion_on_view_service': enable_completion_on_view_service,
+            'edx_notes_enabled': is_feature_enabled(course, request.user),
+            'staff_access': staff_access,
+            'xqa_server': settings.FEATURES.get('XQA_SERVER', 'http://your_xqa_server.com'),
+            'missed_deadlines': missed_deadlines,
+            'missed_gated_content': missed_gated_content,
+            'has_ended': course.has_ended(),
+            'web_app_course_url': reverse(COURSE_HOME_VIEW_NAME, args=[course.id]),
+            'on_courseware_page': True,
+            'verified_upgrade_link': verified_upgrade_deadline_link(request.user, course=course),
+            'is_learning_mfe': is_learning_mfe,
+            'is_mobile_app': is_request_from_mobile_app(request),
+            'reset_deadlines_url': reverse(RESET_COURSE_DEADLINES_NAME),
+            'render_course_wide_assets': True,
+
+            **optimization_flags,
+        }
+        return render_to_response('instructor/instructor_dashboard_2/assessment/courseware-chromeless.html', context)
+
 
 @ensure_csrf_cookie
 @cache_control(no_cache=True,no_store=True,must_revalidate=True)

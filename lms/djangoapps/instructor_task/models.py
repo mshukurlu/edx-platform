@@ -37,6 +37,16 @@ QUEUING = 'QUEUING'
 PROGRESS = 'PROGRESS'
 TASK_INPUT_LENGTH = 10000
 
+class StaffNotification(models.Model):
+    class Meta:
+        app_label = 'instructor_task'
+
+    text = models.CharField(max_length=500)
+    email = models.CharField(max_length=50)
+    staff = models.ForeignKey(User,on_delete=models.CASCADE)
+    course_id = CourseKeyField(max_length=255, db_index=True, blank=True)
+    sent = models.DateTimeField(null=True)
+    progress = models.IntegerField(default=0)
 
 class InstructorTask(models.Model):
     """
