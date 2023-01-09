@@ -49,7 +49,7 @@ class InheritanceMixin(XBlockMixin):
     # This attribute is for custom pacing in self paced courses for Studio if CUSTOM_RELATIVE_DATES flag is active
     relative_weeks_due = Integer(
         display_name=_("Number of Relative Weeks Due By"),
-        help=_("Enter the number of weeks the problems are due by relative to the learner's enrollment date"),
+        help=_("Tələbənin qeydiyyat tarixinə görə problemlərin yaranacağı həftələrin sayını daxil edin"),
         scope=Scope.settings,
     )
     visible_to_staff_only = Boolean(
@@ -88,8 +88,8 @@ class InheritanceMixin(XBlockMixin):
         help=_(
             # Translators: DO NOT translate the words in quotes here, they are
             # specific words for the acceptable values.
-            'Specify when the Show Answer button appears for each problem. '
-            'Valid values are "always", "answered", "attempted", "closed", '
+            'Hər problem üçün Cavabı göstər düyməsinin nə vaxt görünəcəyini təyin edin. '
+            ' Etibarlı dəyərlər : "always", "answered", "attempted", "closed", '
             '"finished", "past_due", "correct_or_past_due", "after_all_attempts", '
             '"after_all_attempts_or_correct", "attempted_no_past_due", and "never".'
         ),

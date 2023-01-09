@@ -288,13 +288,12 @@ class CourseStartDate(DateSummary):
         if not course.start or not is_enrolled:
             return
         days_until_start = (course.start - self.current_time).days
+        #"Don't forget to add a calendar reminder!"
         if course.start > self.current_time:
             if days_until_start > 0:
                 CourseHomeMessages.register_info_message(
                     request,
-                    Text(_(
-                        "Don't forget to add a calendar reminder!"
-                    )),
+                    "Təqvimə xatırlatma əlavə etməyi unutmayın!",
                     title=Text(_("Course starts in {time_remaining_string} on {course_start_date}.")).format(
                         time_remaining_string=self.time_remaining_string,
                         course_start_date=self.long_date_html,
@@ -315,7 +314,8 @@ class CourseEndDate(DateSummary):
     Displays the end date of the course.
     """
     css_class = 'end-date'
-    title = gettext_lazy('Course ends')
+    #title = gettext_lazy('Course ends')
+    title = "Bitmə tarixi"
     is_enabled = True
 
     @property
@@ -336,7 +336,8 @@ class CourseEndDate(DateSummary):
                          'course content but can no longer participate in graded assignments or work towards earning '
                          'a certificate.')
             else:
-                return _('After the course ends, the course content will be archived and no longer active.')
+               # return _('After the course ends, the course content will be archived and no longer active.')
+                 return 'Kurs bitdikdən sonra kursun məzmunu arxivlənəcək və mövcud olmayacaq.'
         elif self.date:
             return _('This course is archived, which means you can review course content but it is no longer active.')
         else:

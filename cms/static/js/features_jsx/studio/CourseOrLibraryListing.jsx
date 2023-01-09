@@ -47,7 +47,7 @@ export function CourseOrLibraryListing(props) {
                     className="button rerun-button"
                     aria-labelledby={`re-run-${idBase}-${i} title-${idBase}-${i}`}
                     id={`re-run-${idBase}-${i}`}
-                  >{gettext('Re-run Course')}</a>
+                  >{gettext('Re-run Course')} 1111</a>
                 </li>
                 }
                 <li className="action action-view">

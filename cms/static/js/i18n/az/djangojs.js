@@ -5,7 +5,7 @@
   const globals = this;
   const django = globals.django || (globals.django = {});
 
-  
+
   django.pluralidx = function(n) {
     const v = (n != 1);
     if (typeof v === 'boolean') {
@@ -14,12 +14,12 @@
       return v;
     }
   };
-  
+
 
   /* gettext library */
 
   django.catalog = django.catalog || {};
-  
+
   const newcatalog = {
     "%(sel)s of %(cnt)s selected": [
       "%(sel)s / %(cnt)s se\u00e7ilib",
@@ -80,12 +80,14 @@
     "one letter Sunday\u0004S": "B",
     "one letter Thursday\u0004T": "C",
     "one letter Tuesday\u0004T": "\u00c7",
-    "one letter Wednesday\u0004W": "\u00c7"
+    "one letter Wednesday\u0004W": "\u00c7",
+    "Re-run Course":"Kursu yenidən başladın",
+    "View Live":"Canlı izlə"
   };
   for (const key in newcatalog) {
     django.catalog[key] = newcatalog[key];
   }
-  
+
 
   if (!django.jsi18n_initialized) {
     django.gettext = function(msgid) {

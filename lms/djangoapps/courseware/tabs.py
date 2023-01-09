@@ -326,8 +326,9 @@ class DatesTab(EnrolledTab):
     A tab representing the relevant dates for a course.
     """
     type = "dates"
-    title = gettext_noop(
-        "Dates")  # We don't have the user in this context, so we don't want to translate it at this level.
+    #title = gettext_noop(
+    #    "Dates")  # We don't have the user in this context, so we don't want to translate it at this level.
+    title = "Tarixlər"
     priority = 50
     view_name = "dates"
     is_dynamic = True

@@ -20,7 +20,11 @@ def url_class(is_active):
   %>
   <li class="tab">
   <a href="${tab.link_func(course, reverse)}" class="${tab_class}">
+  % if tab.name == "Dates":
+    Tarixlər
+  %else:
   ${_(tab.name)}
+  %endif
   % if tab_is_active:
       <span class="sr">, current location</span>
   %endif

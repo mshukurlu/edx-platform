@@ -353,7 +353,7 @@ class CourseFields:  # lint-amnesty, pylint: disable=missing-class-docstring
         scope=Scope.settings
     )
     display_name = String(
-        help=_("Enter the name of the course as it should appear in the course list."),
+        help=_("Kursun adını kurs siyahısında göründüyü kimi daxil edin."),
         default="Empty",
         display_name=_("Course Display Name"),
         scope=Scope.settings,
@@ -422,8 +422,7 @@ class CourseFields:  # lint-amnesty, pylint: disable=missing-class-docstring
     is_new = Boolean(
         display_name=_("Course Is New"),
         help=_(
-            "Enter true or false. If true, the course appears in the list of new courses, and a New! "
-            "badge temporarily appears next to the course image."
+            "Doğru və ya yalan daxil edin. Doğrudursa, kurs yeni kurslar siyahısında görünür və Yeni! nişan müvəqqəti olaraq kurs şəklinin yanında görünür."
         ),
         scope=Scope.settings
     )
@@ -720,8 +719,8 @@ class CourseFields:  # lint-amnesty, pylint: disable=missing-class-docstring
     allow_public_wiki_access = Boolean(
         display_name=_("Allow Public Wiki Access"),
         help=_(
-            "Enter true or false. If true, students can view the course wiki even "
-            "if they're not enrolled in the course."
+            "Doğru və ya yalan daxil edin. Doğrudursa,"
+            "tələbələr kursa yazılmamış olsalar belə, kurs vikisinə baxa bilərlər."
         ),
         default=False,
         scope=Scope.settings
@@ -822,10 +821,9 @@ class CourseFields:  # lint-amnesty, pylint: disable=missing-class-docstring
         display_name=_("Teams Configuration"),
         # Translators: please don't translate "id".
         help=_(
-            'Configure team sets, limit team sizes, and set visibility settings using JSON. See '
+            'JSON istifadə edərək komanda dəstlərini konfiqurasiya edin, komanda ölçülərini məhdudlaşdırın və görünmə parametrlərini təyin edin. '
             '<a target="&#95;blank" href="https://edx.readthedocs.io/projects/edx-partner-course-staff/en/latest/'
-            'course_features/teams/teams_setup.html#enable-and-configure-teams">teams '
-            'configuration documentation</a> for help and examples.'
+            'course_features/teams/teams_setup.html#enable-and-configure-teams">Kömək və nümunələr üçün komandaların konfiqurasiya sənədlərinə baxın</a>  '
         ),
         scope=Scope.settings,
     )
@@ -1000,14 +998,15 @@ class CourseFields:  # lint-amnesty, pylint: disable=missing-class-docstring
     )
 
     course_wide_js = List(
-        display_name=_("Course-wide Custom JS"),
-        help=_('Enter Javascript resource URLs you want to be loaded globally throughout the course pages.'),
+        display_name=_("Kurs boyu Fərdi JS"),
+        help=_('Kurs səhifələrində qlobal olaraq yüklənmək istədiyiniz JS resurs URL-lərini daxil edin.'),
         scope=Scope.settings,
     )
 
     course_wide_css = List(
-        display_name=_("Course-wide Custom CSS"),
-        help=_('Enter CSS resource URLs you want to be loaded globally throughout the course pages.'),
+        display_name=_("Kurs boyu Fərdi CSS"),
+        #help=_('Enter CSS resource URLs you want to be loaded globally throughout the course pages.'),
+        help=_('Kurs səhifələrində qlobal olaraq yüklənmək istədiyiniz CSS resurs URL-lərini daxil edin.'),
         scope=Scope.settings,
     )
 

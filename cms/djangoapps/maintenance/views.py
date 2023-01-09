@@ -42,12 +42,16 @@ MAINTENANCE_VIEWS = {
     },
     'announcement_index': {
         'url': 'maintenance:announcement_index',
-        'name': _('Edit Announcements'),
+        #'name': _('Edit Announcements'),
+        'name': _('Bildirişləri redaktə edin'),
         'slug': 'announcement_index',
+       # 'description': _(
+      #     'This view shows the announcement editor to create or alter announcements that are shown on the right'
+       #     'side of the dashboard.'
+       # ),
         'description': _(
-            'This view shows the announcement editor to create or alter announcements that are shown on the right'
-            'side of the dashboard.'
-        ),
+                   'Bu görünüş idarəetmə panelinin sağ tərəfində göstərilən bildirişləri yaratmaq və ya dəyişdirmək üçün bildiriş redaktorunu göstərir.'
+               ),
     },
 }
 
